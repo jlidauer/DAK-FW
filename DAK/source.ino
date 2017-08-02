@@ -136,10 +136,10 @@ void process_double_action_key(uint8_t i) {
       //Release all locked modifier keys:
       if (modifier_pressed_before_non_a_modifier_key) {
         for (int x = 0; x < 10; x++) {
-          
+
           int16_t index = pressed_modifier_keys[x];
           if (index != -1) {
-            if (index != 0 && states[keys[index].first_switch_pos.r][keys[index].first_switch_pos.c].state == 0) {//the button has been released
+            if (states[keys[index].first_switch_pos.r][keys[index].first_switch_pos.c].state == 0) {//the button has been released
               RELEASE_MODIFIER(keys[index].modifier_code[0]); // Release 1. layer
               release_key(index, 0);
               RELEASE_MODIFIER(keys[index].modifier_code[2]); // Release 3. layer
