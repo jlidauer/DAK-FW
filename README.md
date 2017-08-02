@@ -17,6 +17,7 @@ In principle all Teensy microcontrollers with a keyboard funtionality should wor
 
 So far this firmware has been tested with the following microcontrollers:
 - Teensy 3.2
+- Teensy-LC
 
 ### How to use this firmware?
 See the Wiki for instructions: [Getting Started](https://github.com/jlidauer/DAK/wiki/Getting-Started)
