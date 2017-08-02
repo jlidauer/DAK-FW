@@ -42,7 +42,7 @@ void read_switches() {
     }
     digitalWrite(COLUMN_PINS[c], LOW);
   }
-  
+
 #ifdef DEBUG_PRINT_STATES_ARRAY
   for (int r = 0; r < ROWS; r++) {
     for (int c = 0; c < COLUMNS; c++) {
@@ -136,14 +136,17 @@ void process_double_action_key(uint8_t i) {
       //Release all locked modifier keys:
       if (modifier_pressed_before_non_a_modifier_key) {
         for (int x = 0; x < 10; x++) {
-          uint8_t index = pressed_modifier_keys[x];
-          if (index != 0 && states[keys[index].first_switch_pos.r][keys[index].first_switch_pos.c].state == 0) {//the button has been released
-            RELEASE_MODIFIER(keys[index].modifier_code[0]); // Release 1. layer
-            release_key(index, 0);
-            RELEASE_MODIFIER(keys[index].modifier_code[2]); // Release 3. layer
-            release_key(index, 2);
-            pressed_modifier_keys[x] = -1;
-            modifier_pressed_before_non_a_modifier_key = false;
+          
+          int16_t index = pressed_modifier_keys[x];
+          if (index != -1) {
+            if (index != 0 && states[keys[index].first_switch_pos.r][keys[index].first_switch_pos.c].state == 0) {//the button has been released
+              RELEASE_MODIFIER(keys[index].modifier_code[0]); // Release 1. layer
+              release_key(index, 0);
+              RELEASE_MODIFIER(keys[index].modifier_code[2]); // Release 3. layer
+              release_key(index, 2);
+              pressed_modifier_keys[x] = -1;
+              modifier_pressed_before_non_a_modifier_key = false;
+            }
           }
         }
       }
@@ -199,7 +202,7 @@ void process_double_action_key_no_delay(uint8_t i) {
 }
 
 void set_keys(uint8_t i, uint8_t layer) {
-  
+
   if (KEY_MEDIA_OR_KEY_SYSTEM(layer)) {
     //Multimedia keys work only when they are activated using the Keyboard.press() function.
     Keyboard.press(keys[i].key_code[layer]);
