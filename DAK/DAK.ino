@@ -21,7 +21,7 @@
 #include "key_matrix.h"
 #include "constants.h"
 #include "layout_FI.h"
-//All oher functions can be found in the source.ino file.
+//All functions can be found in the source.ino file.
 
 //Keeps track of all modifier keys that have been pressed before a normal key.
 //Stores their index in the keys array.
