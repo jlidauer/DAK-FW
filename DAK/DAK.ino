@@ -1,7 +1,7 @@
 /*
     DAK - is a firmware for Double Action Keyboards
     Version: 0.9
-    
+
     Copyright (C) 2017  Jaakob Lidauer
 
     This program is free software: you can redistribute it and/or modify
@@ -21,7 +21,7 @@
 #include "key_matrix.h"
 #include "constants.h"
 #include "layout_FI.h"
-//All functions can be found in the source.ino file.
+//All other functions can be found in the source.ino file.
 
 //Keeps track of all modifier keys that have been pressed before a normal key.
 //Stores their index in the keys array.
@@ -44,6 +44,9 @@ bool fn_lock_is_on = false;
 //Stores the time when the last key was released, used for entering sleep mode.
 unsigned long last_action_time = 0;
 
+//Triggered when FN-key is released.
+bool wait_untill_all_keys_are_released = false;
+
 void setup() {
   //For debugging:
 #ifdef DEBUG_PRINT_STATES_ARRAY
@@ -64,15 +67,18 @@ void setup() {
   }
   pinMode(LED1, OUTPUT);
   pinMode(LED2, OUTPUT);
+
 }
 
 void loop() {
   //unsigned long t = micros();
 
   read_switches();
-  set_fn_lock();
-  send_keys();
-  release_keys();
+  if (!wait_untill_all_keys_are_released) {//Eliminates unwanted key strokes when FN-layer is released.
+    set_fn_lock();
+    send_keys();
+    release_keys();
+  }
   update_last_state();
   set_leds();
   set_sleep_mode();

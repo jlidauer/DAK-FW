@@ -41,6 +41,10 @@ void read_switches() {
       }
     }
     digitalWrite(COLUMN_PINS[c], LOW);
+
+    if (no_keys_pressed_and_in_steady_state()) {
+      wait_untill_all_keys_are_released = false;
+    }
   }
 
 #ifdef DEBUG_PRINT_STATES_ARRAY
@@ -65,6 +69,7 @@ void send_keys() {
     } else if (keys[i].type == DOUBLE_ACTION_NO_DELAY) {
       process_double_action_key_no_delay(i);
     }
+
   }
 }
 
@@ -136,10 +141,9 @@ void process_double_action_key(uint8_t i) {
       //Release all locked modifier keys:
       if (modifier_pressed_before_non_a_modifier_key) {
         for (int x = 0; x < 10; x++) {
-
           int16_t index = pressed_modifier_keys[x];
           if (index != -1) {
-            if (states[keys[index].first_switch_pos.r][keys[index].first_switch_pos.c].state == 0) {//the button has been released
+            if ( states[keys[index].first_switch_pos.r][keys[index].first_switch_pos.c].state == 0) {//the button has been released
               RELEASE_MODIFIER(keys[index].modifier_code[0]); // Release 1. layer
               release_key(index, 0);
               RELEASE_MODIFIER(keys[index].modifier_code[2]); // Release 3. layer
@@ -264,6 +268,18 @@ bool no_keys_pressed() {
   return true;
 }
 
+//All keys are released and their last state is also released (==0).
+bool no_keys_pressed_and_in_steady_state() {
+  for (int c = 0; c < COLUMNS; c++) {
+    for (int r = 0; r < ROWS; r++) {
+      if (states[r][c].state == 1 || states[r][c].last_state == 1) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
 void reactivate_locked_modifiers() {
   for (int x = 0; x < 10; x++) {
     if (pressed_modifier_keys[x] != -1) {
@@ -276,8 +292,10 @@ void reactivate_locked_modifiers() {
 void release_keys() {
   for (uint8_t i = 0; i < NUMBER_OF_KEYS; i++) {
 
+    bool no_keys_pressed_now = no_keys_pressed();
+
     //if modifier lock is active for the current key -> skip the releasing process for this key:
-    if (pressed_modifier_keys_contain_key(i) && modifier_pressed_before_non_a_modifier_key  && !no_keys_pressed()) {
+    if (pressed_modifier_keys_contain_key(i) && modifier_pressed_before_non_a_modifier_key  && !no_keys_pressed_now) {
       PRINT_PRESSED_SINGLE_ACTION_KEY_REGISTER;
       continue; //Take the next key in the for loop.
     }
@@ -289,7 +307,7 @@ void release_keys() {
     }
 
     //Release locked modifier keys:
-    if ( pressed_modifier_keys_contain_key(i) && no_keys_pressed()) {
+    if ( pressed_modifier_keys_contain_key(i) && no_keys_pressed_now) {
 
       modifier_pressed_before_non_a_modifier_key = false;
       REMOVE_KEY_FROM_PRESSED_REGISTER(i);
@@ -397,6 +415,10 @@ void set_fn_lock() {
     } else {
       digitalWrite(LED2, LOW);
     }
+  }
+
+  if (FN_KEYS_ARE_RELEASED) {
+    wait_untill_all_keys_are_released = true;
   }
 }
 
