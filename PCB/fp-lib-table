@@ -1,3 +1,0 @@
-(fp_lib_table
-  (lib (name DAK_lib)(type KiCad)(uri component_library\DAK_lib.pretty)(options "")(descr ""))
-)
