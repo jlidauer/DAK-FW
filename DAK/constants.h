@@ -1,8 +1,8 @@
 /*
     DAK - is a firmware for Double Action Keyboards
-    constants.h - contains constants, macros and structures that are used in the program
+    constants.h - contains constants, macros and structs that are used in the program
 
-    Copyright (C) 2017  Jaakob Lidauer
+    Copyright (C) 2022  Jaakob Lidauer
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -26,90 +26,124 @@
 #define DELAY_SLEEP_MODE    10000   //ms      Time after the keyboard goes to sleep mode.
 #define SLEEP_DELAY_TIME    10      //ms      Delay that is added in sleep mode to each loop. To disable the sleep mode, set this value to zero.
 
-//Used for setting FN lock and testing if FN layer is active.
+// Used for setting FN lock and testing if FN layer is active.
+#define FN1_ROW FN1[1]
+#define FN1_COL FN1[0]
+#define FN2_ROW FN2[1]
+#define FN2_COL FN2[0]
 #define FN_LAYER_NOT_ACTIVE     ((states[FN1_ROW][FN1_COL].state == 0 && states[FN2_ROW][FN2_COL].state == 0) && !fn_lock_is_on)== true && (states[FN2_ROW][FN2_COL].last_state == states[FN2_ROW][FN2_COL].state && states[FN1_ROW][FN1_COL].state == states[FN1_ROW][FN1_COL].last_state)==true
 #define FN_KEYS_ARE_RELEASED    (states[FN1_ROW][FN1_COL].state == 0 && states[FN2_ROW][FN2_COL].state == 0 && (states[FN2_ROW][FN2_COL].last_state != states[FN2_ROW][FN2_COL].state || states[FN1_ROW][FN1_COL].state != states[FN1_ROW][FN1_COL].last_state))
 #define FN_KEYS_ARE_PUSHED      (states[FN1_ROW][FN1_COL].state == 1 && states[FN2_ROW][FN2_COL].state == 1 && (states[FN2_ROW][FN2_COL].last_state != states[FN2_ROW][FN2_COL].state || states[FN1_ROW][FN1_COL].state != states[FN1_ROW][FN1_COL].last_state))
 
-//Checks if the key code of a key is a media key or a system key
-#define KEY_MEDIA_OR_KEY_SYSTEM(layer) ((keys[i].key_code[layer] & 0xFF00) == 0xE400 ||(keys[i].key_code[layer] & 0xFF00) == 0xE200)
+// Checks if the key code of a key is a media key or a system key
+#define KEY_MEDIA_OR_KEY_SYSTEM(layer) ((keys_const[i].key_code[layer] & 0xFF00) == 0xE400 ||(keys_const[i].key_code[layer] & 0xFF00) == 0xE200)
 
 #define SET_MODIFIER(mod)      active_key_regiser[0] |=  mod; Keyboard.set_modifier(active_key_regiser[0]);
 #define RELEASE_MODIFIER(mod)  active_key_regiser[0] &= ~mod; Keyboard.set_modifier(active_key_regiser[0]);
 
-//LED codes, used to turn the LEDs on/off
+// LED codes, used to turn the LEDs on/off
 #define USB_LED_NUM_LOCK 0
 #define USB_LED_CAPS_LOCK 1
 #define USB_LED_SCROLL_LOCK 2
 #define USB_LED_COMPOSE 3
 #define USB_LED_KANA 4
 
-//Functions to lock modifiers:
-#define ADD_KEY_TO_PRESSED_REGISTER(i) \
+// Functions to lock modifiers:
+#define ADD_KEY_TO_PRESSED_MODIFIER_KEYS_REGISTER(i) \
   for(int x = 0;x<10;x++){\
     if(pressed_modifier_keys[x]==-1){\
       pressed_modifier_keys[x]=i;break;\
     }\
   }
 
-#define REMOVE_KEY_FROM_PRESSED_REGISTER(i) \
+#define REMOVE_KEY_FROM_PRESSED_MODIFIER_KEYS_REGISTER(i) \
   for(int x = 0;x<10;x++){\
     if(pressed_modifier_keys[x] == i){\
       pressed_modifier_keys[x]=-1;break;\
     }\
   }
 
-  //for debugging
-#define PRINT_PRESSED_SINGLE_ACTION_KEY_REGISTER
-//  for(int x = 0;x<10;x++){
-//    Serial.print(pressed_modifier_keys[x]);
-//    Serial.print('\t');
-//  }Serial.print('\n');
+// For debugging
+#define PRINT_PRESSED_ADDITIVE_ACTION_KEY_REGISTER /* \
+  for(int x = 0;x<10;x++){ \
+    Serial.print(pressed_modifier_keys[x]); \
+    Serial.print('\t'); \
+  }Serial.print('\n'); */
+
+// enum for storing the active layer
+typedef enum current_layer {
+  L1 = 0,
+  L2 = 2
+} CurrentLayer;
+
+// enum for describing the state of a key, all pressed keys are disable on layer change and activated once they are released.
+typedef enum key_state {
+  DISABLED,
+  ENABLED
+} KeyState;
 
 
-  //Key types are used to define the behavior of keys.
-  typedef enum key_type {
-    SINGLE_ACTION,
-    SINGLE_ACTION_MODIFIER,
-    DOUBLE_ACTION,
-    DOUBLE_ACTION_NO_DELAY
-  } KeyType;
+// Key types used to define the behavior a key.
+typedef enum key_type {
+  ADDITIVE_ACTION,
+  DOUBLE_ACTION,
+  TOGGLE_ACTION,
+} __attribute__((packed)) KeyType;
 
-  //Used to store the position of a switch in the struct Key.
-  struct Rc {
-    uint8_t c;
-    uint8_t r;
-  };
+typedef enum key_configuration {
+  MODIFIER,
+  NORMAL,
+}__attribute__((packed)) KeyConfig;
 
-  //Stores all necessary information of one key.
-  struct Key {
-    KeyType type;
+// Used to store the position of a switch in the struct KeyConst.
+struct Rc {
+  uint8_t c; // column
+  uint8_t r; // row
+}__attribute__((packed));
 
-    //stores the key codes for all three layers
-    uint16_t key_code[3];
-    uint16_t modifier_code[3];
+// Stores all not constant information of one key.
+struct Key {
 
-    //defines the index of the switch in the states array
-    struct Rc first_switch_pos;
-    struct Rc second_switch_pos;
+  // Used to keep track of the current status of the key.
+  bool double_press;
 
-    //Used to keep track of the current status of the key.
-    bool double_press;
+  // Stores the place of the pressed key in the active_key_register, each layer has one cell.
+  uint8_t active_key_position[4];
 
-    //Stores the place of the pressed key in the active_key_register, each layer has one cell.
-    uint8_t active_key_position[3];
-  };
+  KeyConfig config_layer[4]; // config of each layer (is it a modifier or not)
+  
+  KeyState state; // Used for disabling or enabling a key
 
-  //Stores the state of one switch in the states array.
-  struct State {
-    uint8_t state; // 1 or 0
-    uint8_t last_state; // 1 or 0
+}__attribute__((packed));
 
-    //Time when the state changed for the last time.
-    unsigned long switch_state_changed_time;
+// Stores all constant information of one key.
+struct KeyConst {
+  
+  KeyType type;  // Key type of normal-layer
+  KeyType type2; // Key type of FN-layer
 
-    //Used to filter bouncing.
-    unsigned long switch_bounce_time;
-  };
+  // Key codes for all four actions of the two double actions layers (normal-layer + FN-layer).
+  uint16_t key_code[4];      // Order: {1. normal-layer, 2. normal-layer, 1. FN-layer, 2. FN-layer}
+  uint16_t modifier_code[4]; // Order: {1. normal-layer, 2. normal-layer, 1. FN-layer, 2. FN-layer}
+
+  // Defines the index of the switch in the states array
+  struct Rc first_switch_pos;
+  struct Rc second_switch_pos;
+
+}__attribute__((packed));
+
+// Stores the state of one switch in the states array.
+struct State {
+  
+  uint8_t state; // 1 or 0
+  uint8_t last_state; // 1 or 0
+
+  // Time when the state changed for the last time.
+  uint32_t switch_state_changed_time;
+
+  // Used to filter bouncing.
+  uint32_t switch_bounce_time;
+
+}__attribute__((packed));
 
 #endif
