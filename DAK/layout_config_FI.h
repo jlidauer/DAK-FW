@@ -80,7 +80,7 @@ To define a key the following syntax is used:
 {[1. action key code  (normal-layer)], [2. action key code  (normal-layer)], [1. action key code  (fn-layer)], [2. action key code  (fn-layer)]},
 {[1. action modifiers (normal-layer)], [2. action modifiers (normal-layer)], [1. action modifiers (fn-layer)], [2. action modifiers (fn-layer)]},
 {[C1],[R1]},
-{[C2],[R1]}
+{[C2],[R2]}
 
 Where [C1] and [R1] are the indices of the switch for the 1. button in the states array
 and [C2] and [R2] are the indices of the switch for the 2. button in the states array.
